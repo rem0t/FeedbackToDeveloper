@@ -14,5 +14,10 @@
 	</array>
 
 ```
+###### Поддерживаемые почтовые кленты 
 
+- Gmail - gogle 
+- Spark - readdle
+- Microsoft Outlook - Microsoft
 
+Добавить yandex.ru и mail.ru
