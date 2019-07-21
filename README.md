@@ -16,8 +16,8 @@
 ```
 ###### Поддерживаемые почтовые кленты 
 
-- Gmail - gogle 
-- Spark - readdle
+- Gmail - Google 
+- Spark - Readdle
 - Microsoft Outlook - Microsoft
 
 ###### Добавить 
