@@ -7,8 +7,11 @@
 //
 
 #import "ViewController.h"
+#import "FTD.h"
 
 @interface ViewController ()
+
+- (IBAction)button:(id)sender;
 
 @end
 
@@ -16,8 +19,15 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
+
 }
 
+
+- (IBAction)button:(id)sender {
+  
+    FTD *ftd = [FTD new];
+    [ftd sendMail:self];
+    
+}
 
 @end
