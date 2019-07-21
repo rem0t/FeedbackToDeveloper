@@ -16,26 +16,14 @@
 
 @implementation FTD
 
-- (void)sendMail:(UIViewController *)vc { // добавить yandex.mail mail.ru
+- (void)sendMail { // добавить yandex.mail mail.ru
     
     NSString *versionAndBuild = [NSString stringWithFormat:@"AppVersion%@Build%@",[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]];
     NSString *customURLGmail = [NSString stringWithFormat:@"googlegmail:///co?to=developer@indoorsnavi.pro,kalaev@indoorsnavi.pro&subject=%@&body=",versionAndBuild];
     NSString *customURLSpark = [NSString stringWithFormat:@"readdle-spark://compose?subject=%@&body=&recipient=developer@indoorsnavi.pro,kalaev@indoorsnavi.pro",versionAndBuild];
     NSString *customURLOutlook = [NSString stringWithFormat:@"ms-outlook://compose?to=developer@indoorsnavi.pro,kalaev@indoorsnavi.pro&subject=%@&body=",versionAndBuild];
     
-//    if([MFMailComposeViewController canSendMail]) {
-//
-//        MFMailComposeViewController* composeMail = [[MFMailComposeViewController alloc] init];
-//        composeMail.mailComposeDelegate = self;
-//
-//        [composeMail setToRecipients:@[@"developerMail@mail.com",@"testerMail@mail.com"]];
-//
-//        [composeMail setSubject:versionAndBuild];
-//
-//        [vc presentViewController:composeMail animated:YES completion:nil];
-//
-//    } else
-        if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:customURLGmail]])
+    if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:customURLGmail]])
     {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:customURLGmail] options:@{} completionHandler:nil];
     }
@@ -46,6 +34,18 @@
     else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:customURLOutlook]])
     {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:customURLOutlook] options:@{} completionHandler:nil];
+    }
+    else if([MFMailComposeViewController canSendMail])
+    {
+        
+        MFMailComposeViewController* composeMail = [[MFMailComposeViewController alloc] init];
+        composeMail.mailComposeDelegate = self;
+        
+        [composeMail setToRecipients:@[@"developerMail@mail.com",@"testerMail@mail.com"]];
+        
+        [composeMail setSubject:versionAndBuild];
+        
+        [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:composeMail animated:YES completion:nil];
     }
     else
     {

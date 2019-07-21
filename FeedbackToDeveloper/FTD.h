@@ -10,6 +10,6 @@
 
 @interface FTD : UIViewController
 
-- (void)sendMail:(UIViewController *)vc;
+- (void)sendMail;
 
 @end

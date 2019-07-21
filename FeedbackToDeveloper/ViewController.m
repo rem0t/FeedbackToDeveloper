@@ -26,7 +26,7 @@
 - (IBAction)button:(id)sender {
   
     FTD *ftd = [FTD new];
-    [ftd sendMail:self];
+    [ftd sendMail];
     
 }
 
