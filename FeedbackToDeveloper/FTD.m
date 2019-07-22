@@ -7,123 +7,137 @@
 //
 
 #import "FTD.h"
-#import <MessageUI/MessageUI.h>
 
+@interface FTD ()
 
-@interface FTD () <MFMailComposeViewControllerDelegate>
+@property (strong, nonatomic) NSString *versionAndBuild;
 
 @end
 
 @implementation FTD
 
+- (instancetype)init {
+    
+    self = [super init];
+    if ( self )
+    {
+        self.versionAndBuild = [NSString stringWithFormat:@"AppVersion%@Build%@",[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]];
+        
+    }
+    return self;
+    
+}
+
 - (void)sendMail { // добавить yandex.mail mail.ru
     
-    NSString *versionAndBuild = [NSString stringWithFormat:@"AppVersion%@Build%@",[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleShortVersionString"],[[NSBundle mainBundle] objectForInfoDictionaryKey:@"CFBundleVersion"]];
-    NSString *customURLGmail = [NSString stringWithFormat:@"googlegmail:///co?to=developer@indoorsnavi.pro,kalaev@indoorsnavi.pro&subject=%@&body=",versionAndBuild];
-    NSString *customURLSpark = [NSString stringWithFormat:@"readdle-spark://compose?subject=%@&body=&recipient=developer@indoorsnavi.pro,kalaev@indoorsnavi.pro",versionAndBuild];
-    NSString *customURLOutlook = [NSString stringWithFormat:@"ms-outlook://compose?to=developer@indoorsnavi.pro,kalaev@indoorsnavi.pro&subject=%@&body=",versionAndBuild];
+    NSMutableDictionary *mails = [NSMutableDictionary new];
     
-    if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:customURLGmail]])
+    mails[@"spark"] = @0;
+    mails[@"gmail"] = @0;
+    mails[@"mailApple"] = @0;
+    mails[@"outlook"] = @0;
+    
+    if ([[UIApplication sharedApplication] canOpenURL:[self gmail]])
     {
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:customURLGmail] options:@{} completionHandler:nil];
+        [mails setValue:@1 forKey:@"gmail"];
     }
-    else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:customURLSpark]])
+    if ([[UIApplication sharedApplication] canOpenURL:[self spark]])
     {
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:customURLSpark] options:@{} completionHandler:nil];
+        [mails setValue:@1 forKey:@"spark"];
     }
-    else if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:customURLOutlook]])
+    if ([[UIApplication sharedApplication] canOpenURL:[self outlook]])
     {
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:customURLOutlook] options:@{} completionHandler:nil];
+        [mails setValue:@1 forKey:@"outlook"];
     }
-    else if([MFMailComposeViewController canSendMail])
+    if([[UIApplication sharedApplication] canOpenURL:[self mailApple]])
     {
-        
-        MFMailComposeViewController* composeMail = [[MFMailComposeViewController alloc] init];
-        composeMail.mailComposeDelegate = self;
-        
-        [composeMail setToRecipients:@[@"developerMail@mail.com",@"testerMail@mail.com"]];
-        
-        [composeMail setSubject:versionAndBuild];
-        
-        [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:composeMail animated:YES completion:nil];
+        [mails setValue:@1 forKey:@"mailApple"];
     }
     else
     {
-        [self presentAlertControllerShowAppMailWithTitle:@"" message:@""]; //NSLocalizedString(@"letter", nil)
+        NSLog(@" нет почтового клиента  ");
     }
     
+    [self actionSheetConfiguratiorWithConfigurator:mails];
 }
 
-- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
-{
+- (void)actionSheetConfiguratiorWithConfigurator:(NSDictionary *)configurator {
     
-    NSString *strError = [NSString stringWithFormat:@"%@ %@", NSLocalizedString(@"badSendMail", nil),[error localizedDescription]];
+    UIAlertController *actionSheet = [UIAlertController alertControllerWithTitle:@"Выберите почтовый клиент"
+                                                                         message:nil
+                                                                  preferredStyle:UIAlertControllerStyleActionSheet];
     
-    switch (result)
-    {
-        case MFMailComposeResultCancelled:
-            NSLog(@"Mail cancelled");
-            break;
-        case MFMailComposeResultSaved:
-            NSLog(@"Mail saved");
-            break;
-        case MFMailComposeResultSent:
-            NSLog(@"Mail sent");
-            
-            [self presentAlertControllerWithTitle:NSLocalizedString(@"goodUser", nil) message:nil];
-            
-            break;
-        case MFMailComposeResultFailed:
-            
-            [self presentAlertControllerWithTitle:strError message:nil];
-            
-            break;
-        default:
-            break;
+    if ([[configurator valueForKey:@"gmail"] isEqual:@1]) {
+        
+        [actionSheet addAction:[UIAlertAction actionWithTitle:@"Gmail" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [[UIApplication sharedApplication] openURL:[self gmail] options:@{} completionHandler:nil];
+        }]];
     }
     
-    [[[[UIApplication sharedApplication] keyWindow] rootViewController] dismissViewControllerAnimated:YES completion:NULL];
-}
-
-- (void)presentAlertControllerWithTitle:(NSString *)title message:(NSString *)message {
+    if ([[configurator valueForKey:@"outlook"] isEqual:@1]) {
+        
+        [actionSheet addAction:[UIAlertAction actionWithTitle:@"Outlook" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [[UIApplication sharedApplication] openURL:[self outlook] options:@{} completionHandler:nil];
+        }]];
+    }
     
-    [UIView animateWithDuration:0 delay:0.8 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    
+    if ([[configurator valueForKey:@"spark"] isEqual:@1]) {
         
-    } completion:^(BOOL finished) {
-        
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
-        [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-            [alertController dismissViewControllerAnimated:YES completion:nil];
+        [actionSheet addAction:[UIAlertAction actionWithTitle:@"Spark" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [[UIApplication sharedApplication] openURL:[self spark] options:@{} completionHandler:nil];
         }]];
         
-        [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alertController animated:YES completion:nil];
-    }];
-}
-
-- (void)presentAlertControllerShowAppMailWithTitle:(NSString *)title message:(NSString *)message {
+    }
     
-    [UIView animateWithDuration:0 delay:0.8 options:UIViewAnimationOptionCurveEaseInOut animations:^{
+    if ([[configurator valueForKey:@"mailApple"] isEqual:@1]) {
         
-    } completion:^(BOOL finished) {
-        
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
-        
-        [alertController addAction:[UIAlertAction actionWithTitle:@"Показать в App Store" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-            [self openAppSoreMail];
-        }]];
-        [alertController addAction:[UIAlertAction actionWithTitle:@"Отменить" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
-            [alertController dismissViewControllerAnimated:YES completion:nil];
+        [actionSheet addAction:[UIAlertAction actionWithTitle:@"Почта" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
+            [[UIApplication sharedApplication] openURL:[self mailApple] options:@{} completionHandler:nil];
         }]];
         
-        [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:alertController animated:YES completion:nil];
-    }];
-}
-
-- (void)openAppSoreMail {
+    }
     
-    NSURL *url = [NSURL URLWithString:@"https://itunes.apple.com/ru/app/%D0%BF%D0%BE%D1%87%D1%82%D0%B0/id1108187098?mt=8"];
-    [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+    [actionSheet addAction:[UIAlertAction actionWithTitle:@"Отмена" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) {
+        [self dismissViewControllerAnimated:YES completion:^{ }];
+    }]];
+    
+    [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:actionSheet animated:YES completion:nil];
+    
 }
 
+#pragma mark - URL configuration
+
+- (NSURL*)gmail {
+    NSString *customURLGmail = [NSString
+                                stringWithFormat:@"googlegmail:///co?to=developer@mail.ru,developer1@mail.ru&subject=%@&body=",
+                                self.versionAndBuild];
+    NSURL *urlGmail = [[NSURL alloc] initWithString:customURLGmail];
+    return urlGmail;
+}
+
+- (NSURL*)spark {
+    NSString *customURLSpark = [NSString
+                                stringWithFormat:@"readdle-spark://compose?subject=%@&body=&recipient=developer@mail.ru,developer1@mail.ru",
+                                self.versionAndBuild];
+    NSURL *urlSpark = [[NSURL alloc] initWithString:customURLSpark];
+    return urlSpark;
+}
+
+- (NSURL*)outlook {
+    NSString *customURLOutlook = [NSString
+                                  stringWithFormat:@"ms-outlook://compose?to=developer@mail.ru,developer1@mail.ru&subject=%@&body=",
+                                  self.versionAndBuild];
+    NSURL *urlOutlook = [[NSURL alloc] initWithString:customURLOutlook];
+    return urlOutlook;
+}
+
+- (NSURL*)mailApple {
+    NSString *customURLOutlook = [NSString
+                                  stringWithFormat:@"mailto:developer@mail.ru,developer1@mail.ru?subject=%@",
+                                  self.versionAndBuild];
+    NSURL *urlOutlook = [[NSURL alloc] initWithString:customURLOutlook];
+    return urlOutlook;
+}
 
 @end
